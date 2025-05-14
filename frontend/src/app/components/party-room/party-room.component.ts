@@ -11,7 +11,6 @@ import { RouterModule } from '@angular/router';
 export interface PartySettings {
   name: string;
   isPrivate: boolean;
-  allowExplicit: boolean;
   maxQueuePerUser: number;
 }
 
@@ -30,7 +29,6 @@ export class PartyRoomComponent implements OnInit {
   partySettings = signal<PartySettings>({
     name: '',
     isPrivate: false,
-    allowExplicit: true,
     maxQueuePerUser: 3,
   });
 
@@ -44,7 +42,6 @@ export class PartyRoomComponent implements OnInit {
       this.partySettings.set({
         name: values.name?.trim().substring(0, 50) || '',
         isPrivate: values.isPrivate || false,
-        allowExplicit: values.allowExplicit || false,
         maxQueuePerUser: Math.min(Math.max(1, values.maxQueuePerUser || 3), 10),
       });
     });
