@@ -15,127 +15,130 @@
     </div>
 
     <div class="wizard-content">
-      <!-- Step 1: Name your party -->
-      @if (currentStep() === 1) {
-      <div class="step-content">
-        <h2>What's your fire called?</h2>
-        <p class="step-description">
-          Give your music session a memorable name.
-        </p>
+      <form [formGroup]="partyForm">
+        <!-- Step 1: Name your party -->
+        @if (currentStep() === 1) {
+        <div class="step-content">
+          <h2>What's your fire called?</h2>
+          <p class="step-description">
+            Give your music session a memorable name.
+          </p>
 
-        <div class="form-group">
-          <label for="partyName">Fire Name</label>
-          <input
-            type="text"
-            id="partyName"
-            [value]="partySettings().name"
-            (input)="updateName($any($event.target).value)"
-            placeholder="My Awesome Fire"
-            class="form-control"
-          />
-        </div>
-      </div>
-      }
-
-      <!-- Step 2: Party Settings -->
-      @if (currentStep() === 2) {
-      <div class="step-content">
-        <h2>Fire Settings</h2>
-        <p class="step-description">Configure your fire's settings.</p>
-
-        <div class="settings-group">
-          <div class="toggle-setting">
-            <label for="isPrivate">Private Fire</label>
-            <div class="toggle-switch">
-              <input
-                type="checkbox"
-                id="isPrivate"
-                [checked]="partySettings().isPrivate"
-                (change)="updatePrivacy($event)"
-              />
-              <span class="toggle-slider"></span>
-            </div>
-            <p class="setting-description">
-              Only people with the link can join.
-            </p>
-          </div>
-
-          <div class="toggle-setting">
-            <label for="allowExplicit">Allow Explicit Content</label>
-            <div class="toggle-switch">
-              <input
-                type="checkbox"
-                id="allowExplicit"
-                [checked]="partySettings().allowExplicit"
-                (change)="updateExplicitContent($any($event.target).checked)"
-              />
-              <span class="toggle-slider"></span>
-            </div>
-            <p class="setting-description">
-              Allow explicit songs in the queue.
-            </p>
-          </div>
-
-          <div class="range-setting">
-            <label for="maxQueuePerUser">Max songs per person</label>
+          <div class="form-group">
+            <label for="partyName">Fire Name</label>
             <input
-              type="range"
-              id="maxQueuePerUser"
-              min="1"
-              max="10"
-              [value]="partySettings().maxQueuePerUser"
-              (input)="updateMaxSongsPerUser(+$any($event.target).value)"
+              type="text"
+              id="partyName"
+              formControlName="name"
+              placeholder="My Awesome Fire"
+              class="form-control"
+              [ngClass]="{
+                'is-invalid':
+                  partyForm.get('name')?.invalid &&
+                  partyForm.get('name')?.touched
+              }"
             />
-            <span class="range-value">{{
-              partySettings().maxQueuePerUser
-            }}</span>
-            <p class="setting-description">
-              Maximum number of songs each person can add to the queue.
-            </p>
+            @if (partyForm.get('name')?.invalid &&
+            partyForm.get('name')?.touched) {
+            <div class="error-message">
+              @if (partyForm.get('name')?.hasError('required')) {
+              <span>Fire name is required</span>
+              } @else if (partyForm.get('name')?.hasError('maxlength')) {
+              <span>Fire name must be less than 50 characters</span>
+              }
+            </div>
+            }
           </div>
         </div>
-      </div>
-      }
+        }
 
-      <!-- Step 3: Confirmation -->
-      @if (currentStep() === 3) {
-      <div class="step-content">
-        <h2>Ready to start your fire?</h2>
-        <p class="step-description">
-          Review your settings and create your fire.
-        </p>
+        <!-- Step 2: Party Settings -->
+        @if (currentStep() === 2) {
+        <div class="step-content">
+          <h2>Fire Settings</h2>
+          <p class="step-description">Configure your fire's settings.</p>
 
-        <div class="summary-container">
-          <div class="summary-item">
-            <div class="summary-label">Fire Name:</div>
-            <div class="summary-value">
-              {{ partySettings().name || "Unnamed Fire" }}
+          <div class="settings-group">
+            <div class="toggle-setting">
+              <label for="isPrivate">Private Fire</label>
+              <div
+                class="toggle-switch"
+                [class.active]="partyForm.get('isPrivate')?.value"
+                (click)="togglePrivacy()"
+              >
+                <input
+                  type="checkbox"
+                  id="isPrivate"
+                  formControlName="isPrivate"
+                />
+                <span class="toggle-slider"></span>
+              </div>
+              <p class="setting-description">
+                Only people with the link can join.
+              </p>
             </div>
-          </div>
 
-          <div class="summary-item">
-            <div class="summary-label">Privacy:</div>
-            <div class="summary-value">
-              {{ partySettings().isPrivate ? "Private" : "Public" }}
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">Explicit Content:</div>
-            <div class="summary-value">
-              {{ partySettings().allowExplicit ? "Allowed" : "Not Allowed" }}
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">Max Songs per Person:</div>
-            <div class="summary-value">
-              {{ partySettings().maxQueuePerUser }}
+            <div class="range-setting">
+              <label for="maxQueuePerUser">Max songs per person</label>
+              <input
+                type="range"
+                id="maxQueuePerUser"
+                min="1"
+                max="10"
+                formControlName="maxQueuePerUser"
+              />
+              <span class="range-value">{{
+                partyForm.get("maxQueuePerUser")?.value
+              }}</span>
+              <p class="setting-description">
+                Maximum number of songs each person can add to the queue at one
+                time.
+              </p>
             </div>
           </div>
         </div>
-      </div>
-      }
+        }
+
+        <!-- Step 3: Confirmation -->
+        @if (currentStep() === 3) {
+        <div class="step-content">
+          <h2>Ready to start your fire?</h2>
+          <p class="step-description">
+            Review your settings and create your fire.
+          </p>
+
+          <div class="summary-container">
+            <div class="summary-item">
+              <div class="summary-label">Fire Name:</div>
+              <div class="summary-value">
+                {{ partySettings().name || "Unnamed Fire" }}
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-label">Privacy:</div>
+              <div class="summary-value">
+                {{ partySettings().isPrivate ? "Private" : "Public" }}
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-label">Explicit Content:</div>
+              <div class="summary-value">
+                {{ partySettings().allowExplicit ? "Allowed" : "Not Allowed" }}
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-label">Max Songs per Person:</div>
+              <div class="summary-value">
+                {{ partySettings().maxQueuePerUser }}
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+      </form>
     </div>
 
     <div class="wizard-footer">
@@ -147,7 +150,7 @@
       <button
         class="btn-primary"
         (click)="nextStep()"
-        [disabled]="currentStep() === 1 && !partySettings().name"
+        [disabled]="currentStep() === 1 && partyForm.get('name')?.invalid"
       >
         Next
       </button>

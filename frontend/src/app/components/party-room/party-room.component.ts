@@ -1,6 +1,11 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 export interface PartySettings {
@@ -13,13 +18,14 @@ export interface PartySettings {
 @Component({
   selector: 'app-party-room',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './party-room.component.html',
   styleUrls: ['./party-room.component.scss'],
 })
-export class PartyRoomComponent {
+export class PartyRoomComponent implements OnInit {
   currentStep = signal<number>(1);
   totalSteps = 3;
+  partyForm!: FormGroup;
 
   partySettings = signal<PartySettings>({
     name: '',
@@ -28,8 +34,43 @@ export class PartyRoomComponent {
     maxQueuePerUser: 3,
   });
 
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit(): void {
+    this.initForm();
+
+    // Subscribe to form value changes to update the settings signal
+    this.partyForm.valueChanges.subscribe((values) => {
+      this.partySettings.set({
+        name: values.name?.trim().substring(0, 50) || '',
+        isPrivate: values.isPrivate || false,
+        allowExplicit: values.allowExplicit || false,
+        maxQueuePerUser: Math.min(Math.max(1, values.maxQueuePerUser || 3), 10),
+      });
+    });
+  }
+
+  initForm(): void {
+    this.partyForm = this.fb.group({
+      name: [
+        this.partySettings().name,
+        [Validators.required, Validators.maxLength(50)],
+      ],
+      isPrivate: [this.partySettings().isPrivate],
+      maxQueuePerUser: [
+        this.partySettings().maxQueuePerUser,
+        [Validators.required, Validators.min(1), Validators.max(10)],
+      ],
+    });
+  }
+
   nextStep() {
     if (this.currentStep() < this.totalSteps) {
+      // For step 1, validate the name field
+      if (this.currentStep() === 1 && this.partyForm.get('name')?.invalid) {
+        this.partyForm.get('name')?.markAsTouched();
+        return;
+      }
       this.currentStep.update((step) => step + 1);
     }
   }
@@ -40,49 +81,20 @@ export class PartyRoomComponent {
     }
   }
 
-  updateName(value: string) {
-    // Trim whitespace and limit to reasonable length
-    const processedValue = value.trim().substring(0, 50);
-
-    this.partySettings.update((settings) => ({
-      ...settings,
-      name: processedValue,
-    }));
-  }
-
-  updatePrivacy(event: Event) {
-    const target = event.target as HTMLInputElement;
-    console.log(target);
-    const isPrivate = target.checked;
-
-    this.partySettings.update((settings) => ({
-      ...settings,
-      isPrivate,
-    }));
-  }
-
-  updateExplicitContent(allowExplicit: boolean) {
-    this.partySettings.update((settings) => ({
-      ...settings,
-      allowExplicit,
-    }));
-  }
-
-  updateMaxSongsPerUser(value: number) {
-    // Ensure value is within acceptable range
-    const processedValue = Math.min(Math.max(1, value), 10);
-
-    this.partySettings.update((settings) => ({
-      ...settings,
-      maxQueuePerUser: processedValue,
-    }));
+  // Add this method to help with toggle interaction
+  togglePrivacy() {
+    const currentValue = this.partyForm.get('isPrivate')?.value;
+    this.partyForm.get('isPrivate')?.setValue(!currentValue);
   }
 
   createParty() {
-    // Validate before creating
-    if (!this.partySettings().name) {
-      alert('Please provide a name for your fire');
-      this.currentStep.set(1);
+    if (this.partyForm.invalid) {
+      this.partyForm.markAllAsTouched();
+
+      // Navigate to the first step with errors
+      if (this.partyForm.get('name')?.invalid) {
+        this.currentStep.set(1);
+      }
       return;
     }
 

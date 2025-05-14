@@ -1,4 +1,4 @@
-# bonfire
+# Bonfire
 
 <img src="/frontend/public/bonfire_logo.png" alt="Bonfire Logo" width="200">
 
