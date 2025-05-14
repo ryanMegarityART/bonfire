@@ -1,0 +1,159 @@
+<div class="party-room-container">
+  <div class="wizard-container">
+    <div class="wizard-header">
+      <h1>Create Your Fire</h1>
+      <div class="step-indicator">
+        <div class="step-dots">
+          @for (step of [1, 2, 3]; track step) {
+          <div class="step-dot" [class.active]="currentStep() >= step"></div>
+          }
+        </div>
+        <div class="step-label">
+          Step {{ currentStep() }} of {{ totalSteps }}
+        </div>
+      </div>
+    </div>
+
+    <div class="wizard-content">
+      <!-- Step 1: Name your party -->
+      @if (currentStep() === 1) {
+      <div class="step-content">
+        <h2>What's your fire called?</h2>
+        <p class="step-description">
+          Give your music session a memorable name.
+        </p>
+
+        <div class="form-group">
+          <label for="partyName">Fire Name</label>
+          <input
+            type="text"
+            id="partyName"
+            [value]="partySettings().name"
+            (input)="updateName($any($event.target).value)"
+            placeholder="My Awesome Fire"
+            class="form-control"
+          />
+        </div>
+      </div>
+      }
+
+      <!-- Step 2: Party Settings -->
+      @if (currentStep() === 2) {
+      <div class="step-content">
+        <h2>Fire Settings</h2>
+        <p class="step-description">Configure your fire's settings.</p>
+
+        <div class="settings-group">
+          <div class="toggle-setting">
+            <label for="isPrivate">Private Fire</label>
+            <div class="toggle-switch">
+              <input
+                type="checkbox"
+                id="isPrivate"
+                [checked]="partySettings().isPrivate"
+                (change)="updatePrivacy($event)"
+              />
+              <span class="toggle-slider"></span>
+            </div>
+            <p class="setting-description">
+              Only people with the link can join.
+            </p>
+          </div>
+
+          <div class="toggle-setting">
+            <label for="allowExplicit">Allow Explicit Content</label>
+            <div class="toggle-switch">
+              <input
+                type="checkbox"
+                id="allowExplicit"
+                [checked]="partySettings().allowExplicit"
+                (change)="updateExplicitContent($any($event.target).checked)"
+              />
+              <span class="toggle-slider"></span>
+            </div>
+            <p class="setting-description">
+              Allow explicit songs in the queue.
+            </p>
+          </div>
+
+          <div class="range-setting">
+            <label for="maxQueuePerUser">Max songs per person</label>
+            <input
+              type="range"
+              id="maxQueuePerUser"
+              min="1"
+              max="10"
+              [value]="partySettings().maxQueuePerUser"
+              (input)="updateMaxSongsPerUser(+$any($event.target).value)"
+            />
+            <span class="range-value">{{
+              partySettings().maxQueuePerUser
+            }}</span>
+            <p class="setting-description">
+              Maximum number of songs each person can add to the queue.
+            </p>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Step 3: Confirmation -->
+      @if (currentStep() === 3) {
+      <div class="step-content">
+        <h2>Ready to start your fire?</h2>
+        <p class="step-description">
+          Review your settings and create your fire.
+        </p>
+
+        <div class="summary-container">
+          <div class="summary-item">
+            <div class="summary-label">Fire Name:</div>
+            <div class="summary-value">
+              {{ partySettings().name || "Unnamed Fire" }}
+            </div>
+          </div>
+
+          <div class="summary-item">
+            <div class="summary-label">Privacy:</div>
+            <div class="summary-value">
+              {{ partySettings().isPrivate ? "Private" : "Public" }}
+            </div>
+          </div>
+
+          <div class="summary-item">
+            <div class="summary-label">Explicit Content:</div>
+            <div class="summary-value">
+              {{ partySettings().allowExplicit ? "Allowed" : "Not Allowed" }}
+            </div>
+          </div>
+
+          <div class="summary-item">
+            <div class="summary-label">Max Songs per Person:</div>
+            <div class="summary-value">
+              {{ partySettings().maxQueuePerUser }}
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="wizard-footer">
+      @if (currentStep() > 1) {
+      <button class="btn-secondary" (click)="prevStep()">Back</button>
+      } @else {
+      <button class="btn-secondary" routerLink="/">Cancel</button>
+      } @if (currentStep() < totalSteps) {
+      <button
+        class="btn-primary"
+        (click)="nextStep()"
+        [disabled]="currentStep() === 1 && !partySettings().name"
+      >
+        Next
+      </button>
+      } @else {
+      <button class="btn-primary" (click)="createParty()">Create Fire</button>
+      }
+    </div>
+  </div>
+</div>
